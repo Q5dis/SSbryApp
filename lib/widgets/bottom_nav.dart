@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../screens/camera_screen.dart';
+import '../screens/credit_screen.dart';
+import '../screens/home_screen.dart';
 import 'dart:math' as math;
 
 class CustomBottomBar extends StatelessWidget {
@@ -7,7 +10,7 @@ class CustomBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 90, // 높이를 90으로 증가 (카메라 버튼이 위로 나오도록)
+      height: 90,
       child: Stack(
         clipBehavior: Clip.none, // 중요! Stack 밖으로 나갈 수 있게
         alignment: Alignment.bottomCenter,
@@ -25,52 +28,65 @@ class CustomBottomBar extends StatelessWidget {
 
           // 왼쪽 메뉴 아이콘
           Positioned(
-            bottom: 20,
-            left: 40,
+            bottom: 10,
+            left: 80,
             child: IconButton(
               icon: Icon(Icons.menu, color: Color(0xFFF5F4D4), size: 28),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomeScreen()
+                    ));
+              },
             ),
           ),
 
           // 오른쪽 메뉴 아이콘
           Positioned(
-            bottom: 20,
-            right: 40,
+            bottom: 10,
+            right: 80,
             child: IconButton(
               icon: Icon(Icons.menu, color: Color(0xFFF5F4D4), size: 28),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CreditScreen()
+                    ));
+              },
             ),
           ),
 
           // 중앙 카메라 버튼 (위로 떠있는 느낌)
           Positioned(
-            bottom: 30, // 바텀바보다 30픽셀 위로
+            bottom: 25, // 바텀바보다 40픽셀 위로 (10px 갭 추가)
             child: Container(
               width: 70,
               height: 70,
               decoration: BoxDecoration(
                 color: Color(0xFFFF9900),
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
               ),
               child: IconButton(
-                icon: Icon(Icons.camera_alt, color: Colors.white, size: 32),
-                onPressed: () {},
+                icon: Icon(Icons.camera_alt, color:Color(0xFFF5F4D4), size: 32),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CameraScreen()
+                      ));
+                },
               ),
             ),
           ),
-        ],
+        ], // 내부 아이콘
       ),
     );
   }
 }
+
+
 
 // 중앙이 둥글게 파인 녹색 바를 그리는 CustomPainter
 class BottomBarPainter extends CustomPainter {
@@ -83,8 +99,8 @@ class BottomBarPainter extends CustomPainter {
     final path = Path();
 
     double centerX = size.width / 2;
-    double notchRadius = 40; // 파인 부분의 반지름
-    double barHeight = 60;
+    double notchRadius = 70; // 파인 부분의 반지름
+    double barHeight = 50;
 
     // 시작점 (왼쪽 하단)
     path.moveTo(0, size.height);
@@ -93,7 +109,7 @@ class BottomBarPainter extends CustomPainter {
     path.lineTo(0, size.height - barHeight);
 
     // 왼쪽 상단 모서리 (둥글게)
-    path.quadraticBezierTo(0, size.height - barHeight - 10, 10, size.height - barHeight - 10);
+    path.quadraticBezierTo(0, size.height - barHeight - 0, 0, size.height - barHeight - 10);
 
     // 왼쪽에서 중앙 파인 부분까지
     path.lineTo(centerX - notchRadius - 20, size.height - barHeight - 10);
@@ -116,13 +132,7 @@ class BottomBarPainter extends CustomPainter {
     );
 
     // 오른쪽 상단 모서리까지
-    path.lineTo(size.width - 10, size.height - barHeight - 10);
-
-    // 오른쪽 상단 모서리 (둥글게)
-    path.quadraticBezierTo(
-        size.width, size.height - barHeight - 10,
-        size.width, size.height - barHeight
-    );
+    path.lineTo(size.width, size.height - barHeight - 10);
 
     // 오른쪽 변
     path.lineTo(size.width, size.height);
