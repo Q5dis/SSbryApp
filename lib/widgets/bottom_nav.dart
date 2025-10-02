@@ -74,7 +74,7 @@ class CustomBottomBar extends StatelessWidget {
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => CameraScreen()
+                          builder: (context) => CameraScreen(cameras: [],)
                       ));
                 },
               ),
