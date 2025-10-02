@@ -14,8 +14,6 @@ class CameraScreen extends StatelessWidget {
   final List<CameraDescription> cameras;
   const CameraScreen({Key? key, required this.cameras}) : super(key: key);
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
