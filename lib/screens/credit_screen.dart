@@ -20,7 +20,6 @@ class CreditScreen extends StatelessWidget {
           ],
     )
       ),
-      bottomNavigationBar: CustomBottomBar(),
     );
   }
 }
