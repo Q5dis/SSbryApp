@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 
-// 프로젝트 구조에 맞게 import
 import 'result_screen.dart';
+import '../services/waste_detector.dart'; // 🚨 추가
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({Key? key}) : super(key: key);
@@ -17,7 +17,7 @@ class _CameraScreenState extends State<CameraScreen> {
   Uint8List? _imageBytes;
   bool _isLoading = false;
 
-  // 이미지 선택 후 바로 ResultScreen으로 이동
+  // 🚨 수정: 이미지 선택 후 모델 추론 실행
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -35,27 +35,41 @@ class _CameraScreenState extends State<CameraScreen> {
           _isLoading = true;
         });
 
-        // 바로 ResultScreen으로 이동
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResultScreen(
-              imageBytes: bytes,
-              text: '선택한 이미지입니다.', // 심플 UI용 임시 텍스트
-            ),
-          ),
-        );
+        // 🚨 모델 추론 실행
+        final result = await WasteDetector.instance.detectWaste(bytes);
 
         setState(() {
           _isLoading = false;
+        });
+
+        // 🚨 추론 결과를 ResultScreen으로 전달
+        if (result != null && mounted) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultScreen(
+                imageBytes: bytes,
+                category: result['category'] ?? 'unknown',
+                confidence: result['confidence'] ?? 0.0,
+              ),
+            ),
+          );
+        } else {
+          // 추론 실패 시
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('쓰레기 분류에 실패했습니다.')),
+          );
+        }
+
+        setState(() {
           _imageBytes = null;
         });
       }
     } catch (e) {
-      print('이미지 선택 오류: $e');
+      print('이미지 선택 또는 추론 오류: $e');
       if (_isLoading) setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이미지를 불러오는 중 오류가 발생했습니다.')),
+        SnackBar(content: Text('오류가 발생했습니다: $e')),
       );
     }
   }
@@ -117,7 +131,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 CircularProgressIndicator(color: Color(0xFF27631F)),
                 SizedBox(width: 15),
                 Text(
-                  '이미지를 준비 중입니다...',
+                  '쓰레기를 분석 중입니다...',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],

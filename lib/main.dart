@@ -1,25 +1,33 @@
 import 'package:flutter/material.dart';
-// import 'widgets/bottom_nav.dart'; // 더 이상 필요 없음
-import 'screens/main_screen.dart'; // 🚨 새로 추가: MainScreen import
+import 'screens/main_screen.dart';
+import 'services/waste_detector.dart'; // 🚨 추가
 
-void main(){
-  // ⚠️ 추후에 모델 로드 기능 등을 추가하려면 이 곳에 코드를 넣으셔야 합니다.
+void main() async {
+  // 🚨 Flutter 바인딩 초기화 (비동기 작업 전 필수)
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 🚨 모델 로드
+  try {
+    await WasteDetector.instance.initialize();
+    print('✅ 모델 초기화 완료');
+  } catch (e) {
+    print('❌ 모델 초기화 실패: $e');
+  }
+
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget{
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SSbry',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF27631F)),
         useMaterial3: true,
       ),
-
-      // 🚨 변경: Scaffold 대신 MainScreen을 앱의 Home으로 지정
       home: const MainScreen(),
     );
   }
