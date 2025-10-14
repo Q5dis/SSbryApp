@@ -1,10 +1,22 @@
-// lib/services/waste_detector.dart (TFLite 버전)
+// lib/services/waste_detector.dart (ONNX 크로스플랫폼 버전)
 
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-// 🚨 ONNX 대신 TFLite 라이브러리 임포트
-import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:onnxruntime/onnxruntime.dart';
+import 'dart:math' as math;
+
+class DetectionResult {
+  final String category;
+  final double confidence;
+  final List<double> bbox;
+
+  DetectionResult({
+    required this.category,
+    required this.confidence,
+    required this.bbox,
+  });
+}
 
 class WasteDetector {
   static final WasteDetector _instance = WasteDetector._internal();
@@ -12,131 +24,202 @@ class WasteDetector {
   WasteDetector._internal();
   static WasteDetector get instance => _instance;
 
-  // 🚨 변경: Interpreter 사용
-  Interpreter? _interpreter;
+  OrtSession? _session;
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
-  // 모델 입력/출력 설정 (YOLOv8 TFLite 416x416 기준)
   static const int INPUT_SIZE = 416;
-  // 클래스는 사용자 모델에 맞게 조정하세요.
-  final List<String> _classes = ['can', 'glass', 'paper', 'plastic', 'trash', 'vinyl'];
+  final List<String> _classes = [
+    'can', 'glass', 'paper', 'plastic', 'trash', 'vinyl'
+  ];
 
-  // 모델 로드 및 초기화
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      // 🚨 모델 경로 변경: .tflite 파일 로드
-      _interpreter = await Interpreter.fromAsset('assets/models/best_waste_model.tflite');
+      OrtEnv.instance.init();
+
+      final modelBytes = await rootBundle.load('assets/models/best_waste_model.onnx');
+      final bytes = modelBytes.buffer.asUint8List();
+
+      final sessionOptions = OrtSessionOptions();
+      _session = OrtSession.fromBuffer(bytes, sessionOptions);
+
       _isInitialized = true;
-      print('✅ TFLite 모델 로드 성공');
+      print('✅ ONNX 모델 로드 성공');
+      print('입력: ${_session!.inputNames}');
+      print('출력: ${_session!.outputNames}');
 
     } catch (e) {
-      print('❌ TFLite 모델 로드 실패: $e');
+      print('❌ ONNX 모델 로드 실패: $e');
       rethrow;
     }
   }
 
-  // 이미지 전처리 (TFLite 형식에 맞게 HWC로 변환)
-  Uint8List _preprocessImage(Uint8List imageBytes) {
+  Float32List _preprocessImage(Uint8List imageBytes) {
     final originalImage = img.decodeImage(imageBytes)!;
-    final resized = img.copyResize(originalImage, width: INPUT_SIZE, height: INPUT_SIZE);
+    final resized = img.copyResize(
+      originalImage,
+      width: INPUT_SIZE,
+      height: INPUT_SIZE,
+      interpolation: img.Interpolation.linear,
+    );
 
-    // 크기: 1 (배치) * 416 * 416 * 3 (채널)
-    final inputData = Float32List(1 * INPUT_SIZE * INPUT_SIZE * 3);
+    final input = Float32List(1 * 3 * INPUT_SIZE * INPUT_SIZE);
 
     int pixelIndex = 0;
 
-    // TFLite 표준 (HWC)에 맞춰서 데이터 저장
+    // R 채널
     for (int y = 0; y < INPUT_SIZE; y++) {
       for (int x = 0; x < INPUT_SIZE; x++) {
         final pixel = resized.getPixel(x, y);
-
-        // 픽셀 값 정규화 (0~1)
-        inputData[pixelIndex++] = pixel.r / 255.0; // Red
-        inputData[pixelIndex++] = pixel.g / 255.0; // Green
-        inputData[pixelIndex++] = pixel.b / 255.0; // Blue
+        input[pixelIndex++] = pixel.r / 255.0;
       }
     }
 
-    return inputData.buffer.asUint8List();
+    // G 채널
+    for (int y = 0; y < INPUT_SIZE; y++) {
+      for (int x = 0; x < INPUT_SIZE; x++) {
+        final pixel = resized.getPixel(x, y);
+        input[pixelIndex++] = pixel.g / 255.0;
+      }
+    }
+
+    // B 채널
+    for (int y = 0; y < INPUT_SIZE; y++) {
+      for (int x = 0; x < INPUT_SIZE; x++) {
+        final pixel = resized.getPixel(x, y);
+        input[pixelIndex++] = pixel.b / 255.0;
+      }
+    }
+
+    return input;
   }
 
-  // 추론 실행
   Future<Map<String, dynamic>?> detectWaste(Uint8List imageBytes) async {
-    if (!_isInitialized || _interpreter == null) {
+    if (!_isInitialized || _session == null) {
       throw Exception('모델이 초기화되지 않았습니다.');
     }
 
     try {
-      // 1. 입력 데이터 준비
-      final inputBytes = _preprocessImage(imageBytes);
+      final inputData = _preprocessImage(imageBytes);
 
-      // 2. 출력 배열 초기화 (TFLite YOLO 출력 Shape에 맞춰야 함)
-      final outputShape = _interpreter!.getOutputTensor(0).shape;
-      final outputTensor = List.filled(
-        outputShape.reduce((a, b) => a * b),
-        0.0,
-      ).reshape(outputShape);
+      final inputOrt = OrtValueTensor.createTensorWithDataList(
+        inputData,
+        [1, 3, INPUT_SIZE, INPUT_SIZE],
+      );
 
-      // 3. 모델 추론 실행
-      // 🚨 TFLite는 입력 형태를 [1, 416, 416, 3]의 Float32List로 자동 변환하여 사용합니다.
-      _interpreter!.run(inputBytes, outputTensor);
+      final inputs = {'images': inputOrt};
+      final runOptions = OrtRunOptions();
+      final outputs = _session!.run(runOptions, inputs);
 
-      // 4. 결과 파싱 (이 부분은 사용자 모델 출력 형태에 맞게 조정 필요)
-      final result = _parseOutput(outputTensor);
+      final outputTensor = outputs[0]?.value as List<List<List<double>>>;
+      inputOrt.release();
+      runOptions.release();
 
-      return result;
+      final detections = _parseYOLOOutput(outputTensor);
+
+      if (detections.isEmpty) {
+        return {'category': 'unknown', 'confidence': 0.0};
+      }
+
+      final best = detections.first;
+      return {
+        'category': best.category,
+        'confidence': best.confidence,
+        'bbox': best.bbox,
+      };
     } catch (e) {
-      print('❌ TFLite 모델 추론 실패: $e');
+      print('❌ 추론 실패: $e');
       return null;
     }
   }
 
-  Map<String, dynamic>? _parseOutput(List<dynamic> outputTensor) {
-    // 💡 경고: TFLite YOLO 모델의 후처리는 복잡하며, 이 코드는 임시 로직입니다.
-    double maxConfidence = 0.0;
-    int maxClassIndex = -1;
-    Map<String, dynamic>? bestResult;
+  List<DetectionResult> _parseYOLOOutput(List<List<List<double>>> output) {
+    final results = <DetectionResult>[];
+    const confThreshold = 0.5;
+    const iouThreshold = 0.4;
 
-    // TFLite YOLO 출력: [1, N, M] 형태 가정 (N: 디텍션 수, M: 4box+1conf+6classes)
-    if (outputTensor.isNotEmpty && outputTensor[0] is List) {
-      final detections = outputTensor[0];
+    final predictions = output[0];
 
-      for (var detection in detections) {
-        if (detection is List<double> && detection.length >= 6) {
-          final objectConf = detection[4]; // 객체 신뢰도
+    for (int i = 0; i < predictions[0].length; i++) {
+      final x = predictions[0][i];
+      final y = predictions[1][i];
+      final w = predictions[2][i];
+      final h = predictions[3][i];
 
-          for (int i = 0; i < _classes.length; i++) {
-            final classScore = detection[5 + i]; // 클래스별 점수
+      double maxScore = 0.0;
+      int maxIndex = -1;
 
-            final finalScore = classScore * objectConf;
-
-            if (finalScore > maxConfidence) {
-              maxConfidence = finalScore;
-              maxClassIndex = i;
-              bestResult = {
-                'category': _classes[maxClassIndex],
-                'confidence': maxConfidence,
-              };
-            }
-          }
+      for (int c = 0; c < _classes.length; c++) {
+        final score = predictions[4 + c][i];
+        if (score > maxScore) {
+          maxScore = score;
+          maxIndex = c;
         }
+      }
+
+      if (maxScore >= confThreshold) {
+        final x1 = (x - w / 2) * INPUT_SIZE;
+        final y1 = (y - h / 2) * INPUT_SIZE;
+        final x2 = (x + w / 2) * INPUT_SIZE;
+        final y2 = (y + h / 2) * INPUT_SIZE;
+
+        results.add(DetectionResult(
+          category: _classes[maxIndex],
+          confidence: maxScore,
+          bbox: [x1, y1, x2, y2],
+        ));
       }
     }
 
-    if (maxConfidence < 0.5) { // 50% 미만은 'unknown'
-      return {'category': 'unknown', 'confidence': maxConfidence};
+    return _applyNMS(results, iouThreshold);
+  }
+
+  List<DetectionResult> _applyNMS(
+      List<DetectionResult> detections,
+      double iouThreshold,
+      ) {
+    if (detections.isEmpty) return [];
+
+    detections.sort((a, b) => b.confidence.compareTo(a.confidence));
+
+    final selected = <DetectionResult>[];
+
+    while (detections.isNotEmpty) {
+      final current = detections.removeAt(0);
+      selected.add(current);
+
+      detections.removeWhere((det) {
+        final iou = _calculateIoU(current.bbox, det.bbox);
+        return iou > iouThreshold;
+      });
     }
 
-    return bestResult;
+    return selected;
+  }
+
+  double _calculateIoU(List<double> box1, List<double> box2) {
+    final x1 = math.max(box1[0], box2[0]);
+    final y1 = math.max(box1[1], box2[1]);
+    final x2 = math.min(box1[2], box2[2]);
+    final y2 = math.min(box1[3], box2[3]);
+
+    final intersectionArea = math.max(0, x2 - x1) * math.max(0, y2 - y1);
+
+    final box1Area = (box1[2] - box1[0]) * (box1[3] - box1[1]);
+    final box2Area = (box2[2] - box2[0]) * (box2[3] - box2[1]);
+
+    final unionArea = box1Area + box2Area - intersectionArea;
+
+    return intersectionArea / unionArea;
   }
 
   void dispose() {
-    _interpreter?.close();
-    _interpreter = null;
+    _session?.release();
+    _session = null;
+    OrtEnv.instance.release();
     _isInitialized = false;
-    print('🗑️ WasteDetector TFLite 세션 해제 완료');
+    print('🗑️ WasteDetector ONNX 세션 해제 완료');
   }
 }

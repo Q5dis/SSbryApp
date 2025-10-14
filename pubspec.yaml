@@ -35,7 +35,7 @@ dependencies:
   flutter_svg: ^2.0.10
   permission_handler: ^11.0.1
   image_picker: ^1.2.0
-  # onnxruntime: ^1.4.1
+  onnxruntime: ^1.4.1
   image: ^4.0.17
   file_selector_macos: ^0.9.4+3
 
@@ -44,7 +44,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   path: ^1.9.0
   pytorch_mobile: ^0.2.2
-  tflite_flutter: 0.9.0
+  tflite_flutter: ^0.9.0
   path_provider: 2.0.15
 
 dev_dependencies:
@@ -64,8 +64,8 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/images/
-    - assets/models/
+    - assets/images/icon.svg
+    - assets/models/best_waste_model.onnx
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
