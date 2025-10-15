@@ -43,66 +43,71 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Container(
         padding: const EdgeInsets.all(20),
         color: const Color(0xFFF5F4D4),
-        child: Column(
-          children: [
-            // 랜덤 팩트 섹션
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/icon.svg',
-                    width: 80,
-                    height: 80,
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '랜덤 에너지 팩트',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF27631F),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        GestureDetector(
-                          onTap: _updateRandomFact,
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF5F4D4),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              randomFact,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                height: 1.5,
-                                color: Colors.black87,
-                              ),
-                              textAlign: TextAlign.left,
-                            ),
-                          ),
-                        ),
-                      ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 190),
+              Image.asset('assets/images/pond_good.png', width: 300, height: 300,),
+              const SizedBox(height: 50),
+              // 랜덤 팩트 섹션
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/icon.svg',
+                      width: 80,
+                      height: 80,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '💡랜덤 에너지 팩트',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF27631F),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: _updateRandomFact,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF27631F),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                randomFact,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  height: 1.5,
+                                  color: Color(0xFFF5F4D4),
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            // 기존 리스트
-            Expanded(
-              child: ListView.builder(
+              const SizedBox(height: 20),
+              // 기존 리스트
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(0),
                 itemCount: posts.length,
                 itemBuilder: (context, index) {
@@ -112,9 +117,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.white,
                     elevation: 0,
                     child: ListTile(
-                      title: Text(post['title']!),
+                      title: Text(
+                        post['title']!,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black,
+                        ),
+                      ),
                       subtitle: Text(
                         post['content']!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -147,8 +163,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            ),
-          ],
+              const SizedBox(height: 100), // ✅ 카드 아래 빈 공간 추가
+            ],
+          ),
         ),
       ),
     );
