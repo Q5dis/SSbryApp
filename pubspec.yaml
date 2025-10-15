@@ -65,7 +65,9 @@ dev_dependencies:
 flutter:
   assets:
     - assets/images/icon.svg
+    - assets/images/icon.png
     - assets/models/best_waste_model.onnx
+    - assets/images/textlogo.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

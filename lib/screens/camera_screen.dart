@@ -3,7 +3,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 
 import 'result_screen.dart';
-import '../services/waste_detector.dart'; // 🚨 추가
+import '../services/waste_detector.dart';
+import '../services/gallery_service.dart'; // 🚨 추가
+import '../widgets/appbar_layout.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({Key? key}) : super(key: key);
@@ -14,10 +16,10 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
+  final GalleryService _galleryService = GalleryService(); // 🚨 추가
   Uint8List? _imageBytes;
   bool _isLoading = false;
 
-  // 🚨 수정: 이미지 선택 후 모델 추론 실행
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -35,27 +37,31 @@ class _CameraScreenState extends State<CameraScreen> {
           _isLoading = true;
         });
 
-        // 🚨 모델 추론 실행
         final result = await WasteDetector.instance.detectWaste(bytes);
 
         setState(() {
           _isLoading = false;
         });
 
-        // 🚨 추론 결과를 ResultScreen으로 전달
         if (result != null && mounted) {
+          final category = result['category'] ?? 'unknown'; // 🚨 변수 추출
+          final confidence = result['confidence'] ?? 0.0; // 🚨 변수 추출
+
+          // 유효한 이미지만 저장
+          if (category != 'unknown') {
+            _galleryService.addItem(bytes, category);
+          }
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ResultScreen(
                 imageBytes: bytes,
-                category: result['category'] ?? 'unknown',
-                confidence: result['confidence'] ?? 0.0,
+                category: category,
+                confidence: confidence,
               ),
             ),
           );
         } else {
-          // 추론 실패 시
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('쓰레기 분류에 실패했습니다.')),
           );
@@ -76,39 +82,47 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: _imageBytes == null ? _buildInitialState() : _buildImageState(),
+    return AppBarLayout(
+      body: Container(
+        color: const Color(0xFFF5F4D4),
+        child: Center(
+          child: _imageBytes == null ? _buildInitialState() : _buildImageState(),
+        ),
+      ),
     );
   }
 
-  // 초기 화면 (버튼)
   Widget _buildInitialState() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          'SSbry',
-          style: TextStyle(
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 60),
+        Image.asset('assets/images/icon.png',width: 70,height: 70,),
+        const SizedBox(height: 40),
 
-        // 갤러리 선택 버튼
         _buildActionButton(
           onPressed: () => _pickImage(ImageSource.gallery),
           icon: Icons.photo_library,
-          label: '갤러리에서 선택',
+          label: '갤러리',
           isPrimary: true,
+          iconColor: const Color(0xFFF5F4D4),
+        ),
+
+        const Text(
+          '\n\n갤러리에서 분석할 쓰레기 \n사진을 선택해주세요.\n\n',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+            height: 1.5,
+            letterSpacing: 0.5,
+          ),
         ),
         const SizedBox(height: 20),
       ],
     );
   }
 
-  // 이미지 로딩 화면
   Widget _buildImageState() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -148,11 +162,12 @@ class _CameraScreenState extends State<CameraScreen> {
     required IconData icon,
     required String label,
     required bool isPrimary,
+    required Color iconColor,
   }) {
     return ElevatedButton.icon(
       onPressed: _isLoading ? null : onPressed,
-      icon: Icon(icon, size: 28),
-      label: Text(label, style: const TextStyle(fontSize: 18)),
+      icon: Icon(icon, size: 28, color: iconColor),
+      label: Text(label, style: TextStyle(fontSize: 18, color: iconColor)),
       style: ElevatedButton.styleFrom(
         backgroundColor: isPrimary ? const Color(0xFF27631F) : Colors.white,
         foregroundColor: isPrimary ? const Color(0xFFF5F4D4) : Colors.black87,
@@ -163,7 +178,7 @@ class _CameraScreenState extends State<CameraScreen> {
               ? BorderSide.none
               : const BorderSide(color: Color(0xFF27631F), width: 1.5),
         ),
-        disabledBackgroundColor: Colors.grey,
+        disabledBackgroundColor: const Color(0xFFF5F4D4),
       ),
     );
   }

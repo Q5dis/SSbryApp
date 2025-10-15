@@ -28,15 +28,11 @@ class DictionaryScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          '쓰레기 백과사전',
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+        title: Image.asset(
+          'assets/images/textlogo.png',
+          height: 20, // 로고 높이 조절
+          fit: BoxFit.contain,
         ),
-        centerTitle: true,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(10),
@@ -47,6 +43,8 @@ class DictionaryScreen extends StatelessWidget {
 
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 5),
+            color: Colors.white,
+            elevation: 0,
             child: ListTile(
               title: Text(article.title),
               subtitle: Text(
