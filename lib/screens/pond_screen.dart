@@ -9,7 +9,7 @@ class PondScreen extends StatefulWidget {
 }
 
 class _PondScreenState extends State<PondScreen> {
-  int selectedHours = 0;
+  int selectedHours = 1;
   int selectedMinutes = 0;
   int selectedSeconds = 30;
 
@@ -22,9 +22,9 @@ class _PondScreenState extends State<PondScreen> {
   Future<void> _loadTimerSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      selectedHours = prefs.getInt('timer_hours') ?? 0;
+      selectedHours = prefs.getInt('timer_hours') ?? 1;
       selectedMinutes = prefs.getInt('timer_minutes') ?? 0;
-      selectedSeconds = prefs.getInt('timer_seconds') ?? 30;
+      selectedSeconds = prefs.getInt('timer_seconds') ?? 0;
     });
   }
 
@@ -119,7 +119,7 @@ class _PondScreenState extends State<PondScreen> {
               ),
               const SizedBox(height: 10),
               const Text(
-                '설정한 시간이 지나면 연못이 어두워집니다',
+                '설정한 시간이 지나면 연못이 오염됩니다.',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.black54,
@@ -234,7 +234,7 @@ class _PondScreenState extends State<PondScreen> {
                     ),
                     SizedBox(height: 12),
                     Text(
-                      '• 타이머를 설정하면 홈 화면의 연못이 점차 어두워집니다\n'
+                      '• 타이머를 설정하면 홈 화면의 연못이 점차 오염됩니다.\n'
                       '• 올바른 분리수거로 연못을 다시 밝게 만들어보세요\n'
                       '• 타이머는 앱을 종료해도 계속 작동합니다',
                       style: TextStyle(
