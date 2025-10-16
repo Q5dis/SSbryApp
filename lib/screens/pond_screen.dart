@@ -126,8 +126,6 @@ class _PondScreenState extends State<PondScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // 타이머 선택기
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -137,7 +135,6 @@ class _PondScreenState extends State<PondScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    // 시
                     _buildTimePicker(
                       label: '시',
                       value: selectedHours,
@@ -151,7 +148,6 @@ class _PondScreenState extends State<PondScreen> {
                     const Text(':',
                         style: TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold)),
-                    // 분
                     _buildTimePicker(
                       label: '분',
                       value: selectedMinutes,
@@ -165,7 +161,6 @@ class _PondScreenState extends State<PondScreen> {
                     const Text(':',
                         style: TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold)),
-                    // 초
                     _buildTimePicker(
                       label: '초',
                       value: selectedSeconds,
@@ -179,10 +174,7 @@ class _PondScreenState extends State<PondScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // 저장 버튼
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -204,10 +196,7 @@ class _PondScreenState extends State<PondScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // 안내 문구
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -235,8 +224,8 @@ class _PondScreenState extends State<PondScreen> {
                     SizedBox(height: 12),
                     Text(
                       '• 타이머를 설정하면 홈 화면의 연못이 점차 오염됩니다.\n'
-                      '• 올바른 분리수거로 연못을 다시 밝게 만들어보세요\n'
-                      '• 타이머는 앱을 종료해도 계속 작동합니다',
+                          '• 올바른 분리수거로 연못을 다시 밝게 만들어보세요\n'
+                          '• 타이머는 앱을 종료해도 계속 작동합니다',
                       style: TextStyle(
                         fontSize: 14,
                         height: 1.5,

@@ -71,20 +71,21 @@ class _HomeScreenState extends State<HomeScreen> {
       seconds: seconds,
     );
 
+    final halfDuration = timerDuration ~/ 2;
+
     final startTime = DateTime.fromMillisecondsSinceEpoch(startTimestamp);
     final currentTime = DateTime.now();
     final elapsed = currentTime.difference(startTime);
 
     if (mounted) {
       if (elapsed >= timerDuration) {
-        setState(() {
-          currentPondImage = 'assets/images/pond_evil.png';
-        });
+        currentPondImage = 'assets/images/pond_evil.png';
+      } else if (elapsed >= halfDuration) {
+        currentPondImage = 'assets/images/pond_mid.png';
       } else {
-        setState(() {
-          currentPondImage = 'assets/images/pond_good.png';
-        });
+        currentPondImage = 'assets/images/pond_good.png';
       }
+      setState(() {});
     }
   }
 
@@ -105,7 +106,6 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // 랜덤 팩트 섹션
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -159,7 +159,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 60),
                 const Text(
                   '올바른 분리수거 습관으로\n나의 연못을 가꾸어 보세요',
@@ -175,9 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 300,
                 ),
                 const SizedBox(height: 50),
-
                 const SizedBox(height: 20),
-                // 기존 리스트
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -229,7 +226,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => const PondScreen(),
                               ),
                             );
-                            // PondScreen에서 돌아온 후 연못 상태 다시 확인
                             _checkPondState();
                           }
                         },

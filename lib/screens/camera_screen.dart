@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:camera/camera.dart';
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'result_screen.dart';
 import '../services/waste_detector.dart';
@@ -23,7 +24,6 @@ class _CameraScreenState extends State<CameraScreen> {
   Uint8List? _imageBytes;
   bool _isLoading = false;
 
-  // 갤러리에서 선택
   Future<void> _pickFromGallery() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -47,7 +47,6 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  // 카메라로 촬영
   Future<void> _takePhoto() async {
     try {
       if (cameras.isEmpty) {
@@ -98,6 +97,13 @@ class _CameraScreenState extends State<CameraScreen> {
           _galleryService.addItem(bytes, category);
         }
 
+        // =========================
+        // 타이머 초기화
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt(
+            'timer_start_timestamp', DateTime.now().millisecondsSinceEpoch);
+        // =========================
+
         await Navigator.push(
           context,
           MaterialPageRoute(
@@ -139,7 +145,7 @@ class _CameraScreenState extends State<CameraScreen> {
         color: const Color(0xFFF5F4D4),
         child: Center(
           child:
-              _imageBytes == null ? _buildInitialState() : _buildImageState(),
+          _imageBytes == null ? _buildInitialState() : _buildImageState(),
         ),
       ),
     );
