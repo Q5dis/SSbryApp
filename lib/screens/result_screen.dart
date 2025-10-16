@@ -9,11 +9,11 @@ class ResultScreen extends StatelessWidget {
   final double confidence;
 
   const ResultScreen({
-    Key? key,
+    super.key,
     required this.imageBytes,
     required this.category,
     required this.confidence,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ class ResultScreen extends StatelessWidget {
                 if (!isUnknown) ...[
                   _buildInfoCard(
                     title: '분류 결과',
-                    content: '${wasteInfo!.koreanName} (${(confidence * 100).toStringAsFixed(1)}%)',
+                    content: '${wasteInfo.koreanName} (${(confidence * 100).toStringAsFixed(1)}%)',
                     color: Color(wasteInfo.colorCode),
                   ),
                   const SizedBox(height: 16),

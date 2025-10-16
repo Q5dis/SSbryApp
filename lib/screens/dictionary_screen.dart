@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../datas/waste_dictionary.dart';
 
 class DictionaryScreen extends StatelessWidget {
-  const DictionaryScreen({Key? key}) : super(key: key);
+  const DictionaryScreen({super.key});
 
   final List<String> articleIds = const [
     'plastic',
@@ -70,8 +70,7 @@ class DictionaryScreen extends StatelessWidget {
 class ArticleDetailScreen extends StatelessWidget {
   final String articleId;
 
-  const ArticleDetailScreen({Key? key, required this.articleId})
-      : super(key: key);
+  const ArticleDetailScreen({super.key, required this.articleId});
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +103,8 @@ class ArticleDetailScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.green[100],
                   borderRadius: BorderRadius.circular(12),
@@ -119,7 +119,6 @@ class ArticleDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-
               Text(
                 article.content,
                 style: const TextStyle(
@@ -128,7 +127,6 @@ class ArticleDetailScreen extends StatelessWidget {
                   color: Colors.black87,
                 ),
               ),
-
               if (article.caution.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 Container(
@@ -159,7 +157,6 @@ class ArticleDetailScreen extends StatelessWidget {
                   ),
                 ),
               ],
-
               const SizedBox(height: 80),
             ],
           ),

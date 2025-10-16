@@ -9,6 +9,7 @@ android {
     namespace = "com.example.ssbry"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+    namespace "com.example.image_gallery_saver"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

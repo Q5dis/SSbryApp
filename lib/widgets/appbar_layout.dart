@@ -5,9 +5,9 @@ class AppBarLayout extends StatelessWidget {
   final Widget body;
 
   const AppBarLayout({
-    Key? key,
+    super.key,
     required this.body,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
