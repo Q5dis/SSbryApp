@@ -81,7 +81,7 @@
 ## 기술 스택
 
 ### Frontend & Mobile
-- **Flutter** - 크로스 플랫폼 모바일 앱
+- **Flutter** - 안드로이드 스튜디오
 
 ### AI
 - **YOLOv8n** - 객체 탐지 모델
