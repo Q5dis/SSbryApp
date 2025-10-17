@@ -155,8 +155,17 @@ class _CameraScreenState extends State<CameraScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.asset('assets/images/icon.png', width: 70, height: 70),
-        const SizedBox(height: 40),
+        const Text(
+          '\n\n카메라로 촬영하거나\n갤러리에서 분석할 쓰레기\n사진을 선택해주세요.\n\n',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+            height: 1.5,
+            letterSpacing: 0.5,
+          ),
+        ),
         _buildActionButton(
           onPressed: _takePhoto,
           icon: Icons.camera_alt,
@@ -171,17 +180,6 @@ class _CameraScreenState extends State<CameraScreen> {
           label: '갤러리에서 선택',
           isPrimary: false,
           iconColor: const Color(0xFF27631F),
-        ),
-        const Text(
-          '\n\n카메라로 촬영하거나\n갤러리에서 분석할 쓰레기\n사진을 선택해주세요.\n\n',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-            height: 1.5,
-            letterSpacing: 0.5,
-          ),
         ),
         const SizedBox(height: 20),
       ],

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../screens/camera_screen.dart'; // Import 유지
-import '../screens/credit_screen.dart'; // Import 유지
-import '../screens/home_screen.dart';   // Import 유지
-import 'dart:math' as math; // Import 유지
+import '../screens/camera_screen.dart';
+import '../screens/credit_screen.dart';
+import '../screens/home_screen.dart';
+import 'dart:math' as math;
 
 class CustomBottomBar extends StatelessWidget {
   final int selectedIndex;
@@ -16,15 +16,17 @@ class CustomBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return SizedBox(
-      height: 90,
+      height: 90 + bottomPadding,
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
         children: [
           // 녹색 바텀바
           Positioned(
-            bottom: 0,
+            bottom: bottomPadding,
             left: 0,
             right: 0,
             child: CustomPaint(
@@ -35,7 +37,7 @@ class CustomBottomBar extends StatelessWidget {
 
           // 왼쪽 메뉴 아이콘 (Home)
           Positioned(
-            bottom: 10,
+            bottom: 10 + bottomPadding,
             left: 80,
             child: IconButton(
               icon: Icon(
@@ -49,7 +51,7 @@ class CustomBottomBar extends StatelessWidget {
 
           // 오른쪽 메뉴 아이콘 (Credit)
           Positioned(
-            bottom: 10,
+            bottom: 10 + bottomPadding,
             right: 80,
             child: IconButton(
               icon: Icon(
@@ -63,7 +65,7 @@ class CustomBottomBar extends StatelessWidget {
 
           // 중앙 카메라 버튼
           Positioned(
-            bottom: 25,
+            bottom: 25 + bottomPadding,
             child: Container(
               width: 70,
               height: 70,
