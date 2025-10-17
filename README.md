@@ -6,7 +6,7 @@
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-**분리배출에서 재생에너지까지, 에너지 순환의 여정을 시각화하다**
+**분리배출에서 재생에너지까지, 에너지 순환의 여정**
 
 [앱 다운로드](#-다운로드) • [AI 모델](https://github.com/Q5dis/SSbry.git) • [문서](#-주요-기능)
 
