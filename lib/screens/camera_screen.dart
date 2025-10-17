@@ -159,9 +159,9 @@ class _CameraScreenState extends State<CameraScreen> {
           '\n\n카메라로 촬영하거나\n갤러리에서 분석할 쓰레기\n사진을 선택해주세요.\n\n',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
             height: 1.5,
             letterSpacing: 0.5,
           ),

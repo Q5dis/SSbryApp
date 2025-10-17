@@ -24,6 +24,18 @@ class CustomBottomBar extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
         children: [
+          // 아래 패딩 영역만 초록색으로 채우기
+          if (bottomPadding > 0)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: bottomPadding,
+                color: Color(0xFF27631F),
+              ),
+            ),
+
           // 녹색 바텀바
           Positioned(
             bottom: bottomPadding,

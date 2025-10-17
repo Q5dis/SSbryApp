@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import '../datas/waste_info.dart';
-import '../widgets/appbar_layout.dart'; // 🚨 추가
+import '../widgets/appbar_layout.dart';
 
 class ResultScreen extends StatelessWidget {
   final Uint8List imageBytes;
@@ -20,69 +20,73 @@ class ResultScreen extends StatelessWidget {
     final wasteInfo = wasteDatabase[category];
     final isUnknown = category == 'unknown' || wasteInfo == null;
 
-    return AppBarLayout(
-      body: Container(
-        color: const Color(0xFFF5F4D4), // 🚨 배경색 유지
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // 선택한 이미지
-                Container(
-                  width: double.infinity,
-                  height: 300,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.memory(
-                      imageBytes,
-                      fit: BoxFit.contain,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F4D4), // 전체 배경색
+      body: AppBarLayout(
+        body: Container(
+          color: const Color(0xFFF5F4D4),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // 선택한 이미지
+                  Container(
+                    width: double.infinity,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.memory(
+                        imageBytes,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // 🚨 분류 결과 상자
-                if (!isUnknown) ...[
-                  _buildInfoCard(
-                    title: '분류 결과',
-                    content: '${wasteInfo.koreanName} (${(confidence * 100).toStringAsFixed(1)}%)',
-                    color: Color(wasteInfo.colorCode),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildInfoCard(
-                    title: '배출 방법',
-                    content: wasteInfo.disposalMethod,
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildInfoCard(
-                    title: '에너지 정보',
-                    content: wasteInfo.energyInfo,
-                  ),
-
-                  if (wasteInfo.caution.isNotEmpty) ...[
-                    const SizedBox(height: 16),
+                  // 분류 결과 상자
+                  if (!isUnknown) ...[
                     _buildInfoCard(
-                      title: '⚠️ 주의사항',
-                      content: wasteInfo.caution,
-                      color: Colors.orange[100],
+                      title: '분류 결과',
+                      content: '${wasteInfo.koreanName} (${(confidence * 100).toStringAsFixed(1)}%)',
+                      color: Color(wasteInfo.colorCode),
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildInfoCard(
+                      title: '배출 방법',
+                      content: wasteInfo.disposalMethod,
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildInfoCard(
+                      title: '에너지 정보',
+                      content: wasteInfo.energyInfo,
+                    ),
+
+                    if (wasteInfo.caution.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildInfoCard(
+                        title: '⚠️ 주의사항',
+                        content: wasteInfo.caution,
+                        color: Colors.orange[100],
+                      ),
+                    ],
+                  ] else ...[
+                    // 인식 실패 시
+                    _buildInfoCard(
+                      title: '분류 실패',
+                      content: '쓰레기를 인식할 수 없습니다. 다른 각도에서 다시 촬영해주세요.',
+                      color: Colors.red[100],
                     ),
                   ],
-                ] else ...[
-                  // 🚨 인식 실패 시
-                  _buildInfoCard(
-                    title: '분류 실패',
-                    content: '쓰레기를 인식할 수 없습니다. 다른 각도에서 다시 촬영해주세요.',
-                    color: Colors.red[100],
-                  ),
+                  const SizedBox(height: 100), // 바텀 네비바 공간
                 ],
-              ],
+              ),
             ),
           ),
         ),

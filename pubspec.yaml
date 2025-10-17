@@ -39,6 +39,8 @@ dependencies:
   image: ^4.0.17
   file_selector_macos: ^0.9.4+3
   shared_preferences: ^2.2.2
+  url_launcher: ^6.2.5
+  flutter_launcher_icons: ^0.13.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -108,3 +110,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_logo.png"  # 여기에 아이콘 경로
