@@ -9,34 +9,106 @@ class PondScreen extends StatefulWidget {
 }
 
 class _PondScreenState extends State<PondScreen> {
-  int selectedHours = 1;
-  int selectedMinutes = 0;
-  int selectedSeconds = 30;
+  // 요일별 선택 상태 (월~일)
+  List<bool> selectedDays = [false, false, false, false, false, false, false];
+
+  final List<String> dayNames = ['월', '화', '수', '목', '금', '토', '일'];
 
   @override
   void initState() {
     super.initState();
-    _loadTimerSettings();
+    _loadWeeklySettings();
   }
 
-  Future<void> _loadTimerSettings() async {
+  Future<void> _loadWeeklySettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      selectedHours = prefs.getInt('timer_hours') ?? 1;
-      selectedMinutes = prefs.getInt('timer_minutes') ?? 0;
-      selectedSeconds = prefs.getInt('timer_seconds') ?? 0;
+      for (int i = 0; i < 7; i++) {
+        selectedDays[i] = prefs.getBool('weekly_day_$i') ?? false;
+      }
     });
   }
 
-  Future<void> _saveTimerSettings() async {
+  Future<void> _saveWeeklySettings() async {
+    // 최소 1개 이상 선택했는지 확인
+    if (!selectedDays.contains(true)) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.warning, color: Colors.orange, size: 28),
+                  SizedBox(width: 10),
+                  Text(
+                    '요일 선택 필요',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
+              ),
+              content: const Text(
+                '최소 1개 이상의 요일을 선택해주세요.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    '확인',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      }
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('timer_hours', selectedHours);
-    await prefs.setInt('timer_minutes', selectedMinutes);
-    await prefs.setInt('timer_seconds', selectedSeconds);
-    await prefs.setInt(
-        'timer_start_timestamp', DateTime.now().millisecondsSinceEpoch);
+
+    // 선택된 요일 저장
+    for (int i = 0; i < 7; i++) {
+      await prefs.setBool('weekly_day_$i', selectedDays[i]);
+    }
+
+    // 현재 주의 완료 상태 초기화
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    await prefs.setString('current_week_start', weekStart.toIso8601String());
+
+    // 각 요일별 완료 상태 초기화
+    for (int i = 0; i < 7; i++) {
+      await prefs.setBool('weekly_completed_$i', false);
+    }
 
     if (mounted) {
+      // 선택된 요일 목록 생성
+      List<String> selectedDayNames = [];
+      for (int i = 0; i < 7; i++) {
+        if (selectedDays[i]) {
+          selectedDayNames.add(dayNames[i]);
+        }
+      }
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -50,7 +122,7 @@ class _PondScreenState extends State<PondScreen> {
                 Icon(Icons.check_circle, color: Color(0xFF27631F), size: 28),
                 SizedBox(width: 10),
                 Text(
-                  '타이머 설정 완료',
+                  '요일 설정 완료',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -60,7 +132,7 @@ class _PondScreenState extends State<PondScreen> {
               ],
             ),
             content: Text(
-              '${selectedHours.toString().padLeft(2, '0')}:${selectedMinutes.toString().padLeft(2, '0')}:${selectedSeconds.toString().padLeft(2, '0')} 후에 연못이 어두워집니다.',
+              '${selectedDayNames.join(', ')}요일마다 연못이 오염됩니다.\n올바른 분리수거로 연못을 정화해주세요!',
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black87,
@@ -110,7 +182,7 @@ class _PondScreenState extends State<PondScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                '연못 타이머 설정',
+                '연못 요일 설정',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -119,7 +191,7 @@ class _PondScreenState extends State<PondScreen> {
               ),
               const SizedBox(height: 10),
               const Text(
-                '설정한 시간이 지나면 연못이 오염됩니다.',
+                '분리수거할 요일을 설정해주세요',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.black54,
@@ -132,45 +204,29 @@ class _PondScreenState extends State<PondScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Column(
                   children: [
-                    _buildTimePicker(
-                      label: '시',
-                      value: selectedHours,
-                      maxValue: 23,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedHours = value;
-                        });
-                      },
-                    ),
-                    const Text(':',
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                    _buildTimePicker(
-                      label: '분',
-                      value: selectedMinutes,
-                      maxValue: 59,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedMinutes = value;
-                        });
-                      },
-                    ),
-                    const Text(':',
-                        style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                    _buildTimePicker(
-                      label: '초',
-                      value: selectedSeconds,
-                      maxValue: 59,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedSeconds = value;
-                        });
-                      },
-                    ),
+                    const SizedBox(height: 20),
+                    ...List.generate(7, (index) {
+                      return CheckboxListTile(
+                        title: Text(
+                          '${dayNames[index]}요일',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        value: selectedDays[index],
+                        activeColor: const Color(0xFF27631F),
+                        onChanged: (bool? value) {
+                          setState(() {
+                            selectedDays[index] = value ?? false;
+                          });
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -179,7 +235,7 @@ class _PondScreenState extends State<PondScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _saveTimerSettings,
+                  onPressed: _saveWeeklySettings,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF27631F),
                     shape: RoundedRectangleBorder(
@@ -187,7 +243,7 @@ class _PondScreenState extends State<PondScreen> {
                     ),
                   ),
                   child: const Text(
-                    '타이머 설정 완료',
+                    '요일 설정 완료',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -212,7 +268,7 @@ class _PondScreenState extends State<PondScreen> {
                             color: Color(0xFF27631F), size: 20),
                         SizedBox(width: 8),
                         Text(
-                          '타이머 안내',
+                          '요일 설정 안내',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -223,9 +279,10 @@ class _PondScreenState extends State<PondScreen> {
                     ),
                     SizedBox(height: 12),
                     Text(
-                      '• 타이머를 설정하면 홈 화면의 연못이 점차 오염됩니다.\n'
-                          '• 올바른 분리수거로 연못을 다시 밝게 만들어보세요\n'
-                          '• 타이머는 앱을 종료해도 계속 작동합니다',
+                      '• 선택한 요일마다 홈 화면의 연못이 오염됩니다.\n'
+                          '• 올바른 분리수거로 연못을 다시 밝게 만들어보세요!\n'
+                          '• 해당 요일에 분리수거를 하면 연못이 정화됩니다.\n'
+                          '• 설정은 앱을 종료해도 계속 유지됩니다.',
                       style: TextStyle(
                         fontSize: 14,
                         height: 1.5,
@@ -240,58 +297,6 @@ class _PondScreenState extends State<PondScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTimePicker({
-    required String label,
-    required int value,
-    required int maxValue,
-    required Function(int) onChanged,
-  }) {
-    return Column(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_drop_up, size: 32),
-          onPressed: () {
-            if (value < maxValue) {
-              onChanged(value + 1);
-            }
-          },
-        ),
-        Container(
-          width: 60,
-          height: 50,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F4D4),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            value.toString().padLeft(2, '0'),
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF27631F),
-            ),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.arrow_drop_down, size: 32),
-          onPressed: () {
-            if (value > 0) {
-              onChanged(value - 1);
-            }
-          },
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.black54,
-          ),
-        ),
-      ],
     );
   }
 }

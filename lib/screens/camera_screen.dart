@@ -76,6 +76,7 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   // 이미지 처리 공통 함수
+  // 이미지 처리 공통 함수
   Future<void> _processImage(Uint8List bytes) async {
     setState(() {
       _imageBytes = bytes;
@@ -98,10 +99,18 @@ class _CameraScreenState extends State<CameraScreen> {
         }
 
         // =========================
-        // 타이머 초기화
+        // 요일 완료 처리 (오늘의 분리수거 완료로 표시)
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt(
-            'timer_start_timestamp', DateTime.now().millisecondsSinceEpoch);
+        final now = DateTime.now();
+        final currentDayIndex = now.weekday - 1; // 월요일=0, 일요일=6
+
+        // 오늘 날짜가 선택된 요일인지 확인
+        final isTodaySelected = prefs.getBool('weekly_day_$currentDayIndex') ?? false;
+
+        if (isTodaySelected && category != 'unknown') {
+          // 오늘이 선택된 요일이고, 분류가 성공했다면 완료 처리
+          await prefs.setBool('weekly_completed_$currentDayIndex', true);
+        }
         // =========================
 
         await Navigator.push(

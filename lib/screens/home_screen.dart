@@ -16,10 +16,9 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, String>> posts = const [
-    {'title': '연못 타이머', 'content': '연못이 더러워지면 쓰레기를 분리할 시간'},
+    {'title': '연못 설정', 'content': '연못이 더러워지면 쓰레기를 분리할 시간'},
     {'title': '쓰레기 백과사전', 'content': '쓰레기에 대한 흥미로운 아티클'},
     {'title': '쓰레기 갤러리', 'content': '나의 쓰레기 기록들'}
   ];
@@ -27,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late String randomFact;
   String currentPondImage = 'assets/images/pond_good.png';
   Timer? _timer;
+  bool _hasShownPopup = false;
 
   @override
   void initState() {
@@ -43,16 +43,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    // 1분마다 체크 (너무 자주 체크할 필요 없음)
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _checkPondState();
     });
   }
 
   Future<void> _checkPondState() async {
     final prefs = await SharedPreferences.getInstance();
-    final startTimestamp = prefs.getInt('timer_start_timestamp');
+    final now = DateTime.now();
 
-    if (startTimestamp == null) {
+    // 현재 요일 (월요일=1, 일요일=7) → 인덱스 (월요일=0, 일요일=6)
+    final currentDayIndex = now.weekday - 1;
+
+    // 선택된 요일들 불러오기
+    List<bool> selectedDays = [];
+    for (int i = 0; i < 7; i++) {
+      selectedDays.add(prefs.getBool('weekly_day_$i') ?? false);
+    }
+
+    // 선택된 요일이 없으면 기본 상태 (깨끗한 연못)
+    if (!selectedDays.contains(true)) {
       if (mounted) {
         setState(() {
           currentPondImage = 'assets/images/pond_good.png';
@@ -61,32 +72,115 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    final hours = prefs.getInt('timer_hours') ?? 0;
-    final minutes = prefs.getInt('timer_minutes') ?? 0;
-    final seconds = prefs.getInt('timer_seconds') ?? 0;
+    // 주가 바뀌었는지 확인 (매주 월요일에 리셋)
+    final savedWeekStart = prefs.getString('current_week_start');
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final weekStartStr = DateTime(weekStart.year, weekStart.month, weekStart.day).toIso8601String();
 
-    final timerDuration = Duration(
-      hours: hours,
-      minutes: minutes,
-      seconds: seconds,
-    );
-
-    final halfDuration = timerDuration ~/ 2;
-
-    final startTime = DateTime.fromMillisecondsSinceEpoch(startTimestamp);
-    final currentTime = DateTime.now();
-    final elapsed = currentTime.difference(startTime);
-
-    if (mounted) {
-      if (elapsed >= timerDuration) {
-        currentPondImage = 'assets/images/pond_evil.png';
-      } else if (elapsed >= halfDuration) {
-        currentPondImage = 'assets/images/pond_mid.png';
-      } else {
-        currentPondImage = 'assets/images/pond_good.png';
+    if (savedWeekStart != weekStartStr) {
+      // 새로운 주가 시작됨 - 모든 완료 상태 초기화
+      await prefs.setString('current_week_start', weekStartStr);
+      for (int i = 0; i < 7; i++) {
+        await prefs.setBool('weekly_completed_$i', false);
       }
-      setState(() {});
     }
+
+    // 오늘이 선택된 요일인지 확인
+    final isTodaySelected = selectedDays[currentDayIndex];
+
+    if (!isTodaySelected) {
+      // 오늘은 선택된 요일이 아님 → 깨끗한 연못
+      if (mounted) {
+        setState(() {
+          currentPondImage = 'assets/images/pond_good.png';
+        });
+      }
+      return;
+    }
+
+    // 오늘의 완료 여부 확인
+    final isTodayCompleted = prefs.getBool('weekly_completed_$currentDayIndex') ?? false;
+
+    if (isTodayCompleted) {
+      // 오늘 이미 분리수거 완료 → 깨끗한 연못
+      if (mounted) {
+        setState(() {
+          currentPondImage = 'assets/images/pond_good.png';
+        });
+      }
+    } else {
+      // 오늘 아직 분리수거 안 함 → 오염된 연못
+      if (mounted) {
+        setState(() {
+          currentPondImage = 'assets/images/pond_evil.png';
+        });
+
+        // 팝업을 오늘 아직 보여주지 않았다면 표시
+        final lastPopupDate = prefs.getString('last_popup_date');
+        final todayStr = DateTime(now.year, now.month, now.day).toIso8601String();
+
+        if (!_hasShownPopup && lastPopupDate != todayStr) {
+          _hasShownPopup = true;
+          await prefs.setString('last_popup_date', todayStr);
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _showPollutionAlert();
+            }
+          });
+        }
+      }
+    }
+  }
+
+  void _showPollutionAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              SizedBox(width: 10),
+              Text(
+                '연못이 오염됐어요!',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            '정화하기 위해 쓰레기를 분리수거 합시다!\n\n카메라 탭에서 쓰레기를 촬영하면 연못이 깨끗해집니다.',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                '확인',
+                style: TextStyle(
+                  color: Color(0xFF27631F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _updateRandomFact() {
@@ -219,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => const WasteGallery(),
                               ),
                             );
-                          } else if (post['title'] == '연못 타이머') {
+                          } else if (post['title'] == '연못 설정') {
                             await Navigator.push(
                               context,
                               MaterialPageRoute(
