@@ -259,6 +259,15 @@ dependencies:
 
 ## 팀 구성
 
+<div align="center">
+
+| **오왕경** | **윤태훈** | **최하연** |
+| --- | --- | --- |
+| <div align="center">- 앱 개발 및 디자인<br/>- UIUX<br/>- 모델 연동</div> | <div align="center">- 데이터 수집/전처리<br/>- YOLO 모델 훈련<br/>- AI 모델 개발<br/>- 성능 최적화</div> | <div align="center">- 일정 관리<br/>- 자료 수집/검증<br/>- AI 부분 서포트<br/>- 발표 자료 작성</div> |
+| <div align="center"><a href=""><img src="https://img.shields.io/badge/github-181717?style=flat-square&logo=github&logoColor=white"/></a><br/><a href=""><img src="https://img.shields.io/badge/velog-20C997?style=flat-square&logo=velog&logoColor=white"/></a></div> | <div align="center"><a href="https://github.com/taehun96"><img src="https://img.shields.io/badge/github-181717?style=flat-square&logo=github&logoColor=white"/></a><br/><a href="https://velog.io/@taehun96/posts"><img src="https://img.shields.io/badge/velog-20C997?style=flat-square&logo=velog&logoColor=white"/></a></div> | <div align="center"><a href=""><img src="https://img.shields.io/badge/github-181717?style=flat-square&logo=github&logoColor=white"/></a><br/><a href=""><img src="https://img.shields.io/badge/velog-20C997?style=flat-square&logo=velog&logoColor=white"/></a></div> |
+
+</div>
+
 | 역할 | 이름 | 담당 업무 |
 |:---:|:---:|:---|
 | **팀장** | 오왕경 | 앱 개발 및 디자인, UI/UX, 모델 연동 |
